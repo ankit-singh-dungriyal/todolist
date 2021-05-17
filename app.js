@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const date = require(__dirname + "/date.js");
+// const date = require(__dirname + "/date.js");
 const _ = require("lodash");
 
 const app = express();
@@ -17,6 +17,8 @@ mongoose.connect("mongodb://localhost:27017/todolistDB", {useNewUrlParser : true
 
 mongoose.set('useFindAndModify', false);
 
+
+// creating schemas
 const itemSchema = new mongoose.Schema({
   name: String
 })
@@ -43,7 +45,6 @@ const defaultItems = [item1, item2, item3];
 
 app.get("/", function(req, res) {
 
-  const day = date.getDate();
   Item.find({},function(err, foundItems){
     if(foundItems.length === 0){
 
@@ -58,7 +59,7 @@ app.get("/", function(req, res) {
 
       res.redirect("/");
     } else{
-      res.render("list", {listTitle: day, newListItems: foundItems});
+      res.render("list", {listTitle: "Today", newListItems: foundItems});
     }
   })
 
@@ -70,7 +71,7 @@ app.post("/", function(req, res){
   const item = req.body.newItem;
   const newItem = new Item({name: item});
   const listName = req.body.list;
-  if (listName === date.getDate()) {
+  if (listName === "Today") {
     newItem.save(function(err, result){
       if(err){
         console.log(err)
@@ -110,12 +111,10 @@ app.post("/", function(req, res){
 });
 
 app.post("/delete", function(req, res){
-  console.log(req.body.checkbox);
   const listName = req.body.listName;
   const itemToDelete = req.body.checkbox;
-  console.log(listName)
 
-  if(listName === date.getDate()){
+  if(listName === "Today"){
     Item.findByIdAndDelete({_id: itemToDelete}, function(err){
       if(err){
         console.log(err);
@@ -127,7 +126,6 @@ app.post("/delete", function(req, res){
       if(err){
         console.log(err);
       } else{
-        console.log("customList updated successfully");
         res.redirect("/" + listName);
       }
     })
@@ -138,7 +136,6 @@ app.post("/delete", function(req, res){
 
 app.get("/:customList", function(req, res){
   const customListName = _.capitalize(req.params.customList);
-  console.log(customListName)
 
   List.findOne({name: customListName }, function(err, foundList){
     if(!err){
@@ -156,7 +153,6 @@ app.get("/:customList", function(req, res){
           }
         });
       } else{
-        console.log("list already exist")
         res.render("list", {listTitle:foundList.name ,newListItems: foundList.items});
       }
     }
